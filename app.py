@@ -1,20 +1,23 @@
 # app.py (Kode 2 - Final + Debug Info)
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, date
 from io import BytesIO
 
 st.set_page_config(page_title="Aplikasi Kode 2 - Naik Turun Golongan", layout="centered")
 st.title("Rekap Nominal Naik Turun Golongan")
 
-# Pilih rentang tanggal
-date_range = st.date_input("Pilih rentang tanggal (filter)", [])
+# Pilih rentang tanggal (aktifkan mode rentang)
+date_range = st.date_input(
+    "Pilih rentang tanggal (filter)",
+    value=(date(2025, 5, 5), date(2025, 5, 13))
+)
 
 # Upload input files
 uploaded_tsum = st.file_uploader("Upload file Excel Tiket Summary", type=["xlsx"], key="tsum")
 uploaded_inv = st.file_uploader("Upload file Excel Invoice", type=["xlsx"], key="inv")
 
-if uploaded_tsum and uploaded_inv and isinstance(date_range, list) and len(date_range) == 2:
+if uploaded_tsum and uploaded_inv and isinstance(date_range, tuple) and len(date_range) == 2:
     start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
     end_date = end_date + pd.Timedelta(hours=23, minutes=59, seconds=59)
 
