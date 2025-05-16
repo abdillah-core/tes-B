@@ -1,4 +1,4 @@
-# app.py (Kode 2 - Final + Debug Info)
+# app.py (Kode 2 - Final + Debug Info + Urutan Cabang)
 import streamlit as st
 import pandas as pd
 from datetime import datetime, date
@@ -58,17 +58,24 @@ if uploaded_tsum and uploaded_inv and isinstance(date_range, tuple) and len(date
         combined = pd.concat([inv_rows, tsum_rows], ignore_index=True)
         result = combined.groupby('KEBERANGKATAN')['HARGA'].sum().reset_index()
         result = result.rename(columns={'KEBERANGKATAN': 'ASAL', 'HARGA': 'Nominal Naik Turun Golongan'})
+        result['ASAL'] = result['ASAL'].str.capitalize()
         result['Nominal Naik Turun Golongan'] = result['Nominal Naik Turun Golongan'].astype(int)
 
-        # Tambah baris kosong dan total
-        blank_row = pd.DataFrame([{'ASAL': '', 'Nominal Naik Turun Golongan': ''}])
-        total_sum = result['Nominal Naik Turun Golongan'].sum()
-        total_row = pd.DataFrame([{'ASAL': 'Total', 'Nominal Naik Turun Golongan': total_sum}])
-        result_with_total = pd.concat([result, blank_row, total_row], ignore_index=True)
+        # Susun urutan sesuai daftar tetap
+        urutan_cabang = ["Merak", "Bakauheni", "Ketapang", "Gilimanuk", "Ciwandan", "Panjang"]
+        ordered_result = pd.DataFrame({"ASAL": urutan_cabang})
+        ordered_result = ordered_result.merge(result, on="ASAL", how="left")
+        ordered_result["Nominal Naik Turun Golongan"] = ordered_result["Nominal Naik Turun Golongan"].fillna(0).astype(int)
 
-        # Tampilkan tabel
+        # Tambah 3 baris kosong dan total
+        blank_rows = pd.DataFrame([{"ASAL": "", "Nominal Naik Turun Golongan": ""}] * 3)
+        total_sum = ordered_result["Nominal Naik Turun Golongan"].sum()
+        total_row = pd.DataFrame([{"ASAL": "Total", "Nominal Naik Turun Golongan": total_sum}])
+        result_with_total = pd.concat([ordered_result, blank_rows, total_row], ignore_index=True)
+
+        # Format tampilan
         result_display = result_with_total.copy()
-        result_display['Nominal Naik Turun Golongan'] = result_display['Nominal Naik Turun Golongan'].apply(
+        result_display["Nominal Naik Turun Golongan"] = result_display["Nominal Naik Turun Golongan"].apply(
             lambda x: f"{int(x):,}".replace(",", ".") if isinstance(x, int) else x
         )
 
